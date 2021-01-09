@@ -69,7 +69,7 @@ public class MatrixMultiplicationDoublePrecisionGPUv3 extends Kernel implements 
 	}
 
 	private int tileSize = 2;
-	private final int MAX_TILE_SIZE = 64;
+	private final int MAX_TILE_SIZE = 24;
 	private int numTiles;
 
 	public void execute() {
