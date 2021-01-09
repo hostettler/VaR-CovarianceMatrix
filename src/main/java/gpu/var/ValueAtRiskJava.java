@@ -85,10 +85,10 @@ public class ValueAtRiskJava extends AbstractValueAtRisk implements ValueAtRisk 
 				}
 				System.out.println("********************************");
 			}
-			List<Callable<?>> step2Tasks = new ArrayList<>();
+			List<Callable<Integer>> step2Tasks = new ArrayList<>();
 			for (int i = 0; i < this.numberOfInstruments; i++) {
 				final int index = i;
-				Callable<?> step1 = () -> {
+				Callable<Integer> step1 = () -> {
 					computeWeightedAverageReturns(index);
 					buildVarianceCovarianceMatrix(index);
 					return 0;
@@ -107,10 +107,10 @@ public class ValueAtRiskJava extends AbstractValueAtRisk implements ValueAtRisk 
 					System.out.println();
 				}
 			}
-			List<Callable<?>> step3Tasks = new ArrayList<>();
+			List<Callable<Integer>> step3Tasks = new ArrayList<>();
 			for (int i = 0; i < this.numberOfInstruments; i++) {
 				final int index = i;
-				Callable<?> step1 = () -> {
+				Callable<Integer> step1 = () -> {
 					computeWeightedCovarianceMatrix(index);
 					return 0;
 				};
@@ -125,10 +125,10 @@ public class ValueAtRiskJava extends AbstractValueAtRisk implements ValueAtRisk 
 				}
 				System.out.println("********************************");
 			}
-			List<Callable<?>> step4Tasks = new ArrayList<>();
+			List<Callable<Integer>> step4Tasks = new ArrayList<>();
 			for (int i = 0; i < this.numberOfInstruments; i++) {
 				final int index = i;
-				Callable<?> step1 = () -> {
+				Callable<Integer> step1 = () -> {
 					computeStandardDeviation(index);
 					return 0;
 				};
