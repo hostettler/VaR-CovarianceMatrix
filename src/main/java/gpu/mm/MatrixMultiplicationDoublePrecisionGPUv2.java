@@ -70,7 +70,6 @@ public class MatrixMultiplicationDoublePrecisionGPUv2 extends Kernel implements 
 
 	public void execute() {
 		this.setExplicit(true);
-
 		this.put(matrixA);
 		this.put(matrixB);
 		execute(Range.create2D(this.matrixRWidth, this.matrixRHeight));

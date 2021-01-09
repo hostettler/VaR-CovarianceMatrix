@@ -1,5 +1,7 @@
 package gpu.benchmarks;
 
+import com.aparapi.Kernel;
+
 import gpu.mm.MatrixMultiplication;
 import gpu.mm.MatrixMultiplicationDoublePrecision;
 import gpu.mm.MatrixMultiplicationDoublePrecisionGPU;
@@ -29,6 +31,15 @@ public class ComputeMatrixMultiplication {
 			mode = args[2];
 		}
 
+		if (mode.equals("GPU") ) {
+			Kernel k = new Kernel() {
+				
+				@Override
+				public void run() {
+				}
+			};
+			System.out.println(k.getTargetDevice());
+		}
 		benchmarkSinglePrecision();
 		benchmarkDoublePrecision();
 	}

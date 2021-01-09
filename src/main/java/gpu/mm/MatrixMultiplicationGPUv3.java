@@ -75,7 +75,6 @@ public class MatrixMultiplicationGPUv3 extends Kernel implements MatrixMultiplic
 		// this.setExecutionMode(EXECUTION_MODE.GPU);
 
 		this.setExplicit(true);
-
 		this.put(matrixA);
 		this.put(matrixB);
 

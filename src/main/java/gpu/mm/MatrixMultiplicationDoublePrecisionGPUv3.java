@@ -74,7 +74,7 @@ public class MatrixMultiplicationDoublePrecisionGPUv3 extends Kernel implements 
 
 	public void execute() {
 		// this.setExecutionMode(EXECUTION_MODE.GPU);
-
+		
 		this.setExplicit(true);
 
 		this.put(matrixA);
