@@ -40,7 +40,7 @@ public class ComputeMatrixMultiplication {
 			};
 			System.out.println(k.getTargetDevice());
 		}
-//		benchmarkSinglePrecision();
+		benchmarkSinglePrecision();
 		benchmarkDoublePrecision();
 	}
 
