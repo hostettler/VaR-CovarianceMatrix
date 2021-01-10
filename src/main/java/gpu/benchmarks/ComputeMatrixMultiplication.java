@@ -40,7 +40,7 @@ public class ComputeMatrixMultiplication {
 			};
 			System.out.println(k.getTargetDevice());
 		}
-		benchmarkSinglePrecision();
+//		benchmarkSinglePrecision();
 		benchmarkDoublePrecision();
 	}
 
@@ -66,11 +66,8 @@ public class ComputeMatrixMultiplication {
 				time = System.currentTimeMillis() - time;
 				System.out.print(".");
 				totalTime += time;
-				assert (checkValue(0, 0, MATRIX_SIZE) == mm.getMatrixRXY(0, 0));
-				assert (checkValue(0, MATRIX_SIZE - 1, MATRIX_SIZE) == mm.getMatrixRXY(0, MATRIX_SIZE - 1));
-				assert (checkValue(MATRIX_SIZE - 1, 0, MATRIX_SIZE) == mm.getMatrixRXY(MATRIX_SIZE - 1, 0));
-				assert (checkValue(MATRIX_SIZE - 1, MATRIX_SIZE - 1, MATRIX_SIZE) == mm.getMatrixRXY(MATRIX_SIZE - 1,
-						MATRIX_SIZE - 1));
+
+				
 			}
 			System.out.println(String.format("\nJava Based Multiplication Average %d ms", (totalTime / NB_RUNS)));
 		}
@@ -86,11 +83,7 @@ public class ComputeMatrixMultiplication {
 				time = System.currentTimeMillis() - time;
 				System.out.print(".");
 				totalTime += time;
-				assert (checkValue(0, 0, MATRIX_SIZE) == mm.getMatrixRXY(0, 0));
-				assert (checkValue(0, MATRIX_SIZE - 1, MATRIX_SIZE) == mm.getMatrixRXY(0, MATRIX_SIZE - 1));
-				assert (checkValue(MATRIX_SIZE - 1, 0, MATRIX_SIZE) == mm.getMatrixRXY(MATRIX_SIZE - 1, 0));
-				assert (checkValue(MATRIX_SIZE - 1, MATRIX_SIZE - 1, MATRIX_SIZE) == mm.getMatrixRXY(MATRIX_SIZE - 1,
-						MATRIX_SIZE - 1));
+
 			}
 			System.out.println(String.format("\nGPUv1 Based Multiplication Average %d ms", (totalTime / NB_RUNS)));
 
@@ -104,11 +97,7 @@ public class ComputeMatrixMultiplication {
 				time = System.currentTimeMillis() - time;
 				System.out.print(".");
 				totalTime += time;
-				assert (checkValue(0, 0, MATRIX_SIZE) == mm.getMatrixRXY(0, 0));
-				assert (checkValue(0, MATRIX_SIZE - 1, MATRIX_SIZE) == mm.getMatrixRXY(0, MATRIX_SIZE - 1));
-				assert (checkValue(MATRIX_SIZE - 1, 0, MATRIX_SIZE) == mm.getMatrixRXY(MATRIX_SIZE - 1, 0));
-				assert (checkValue(MATRIX_SIZE - 1, MATRIX_SIZE - 1, MATRIX_SIZE) == mm.getMatrixRXY(MATRIX_SIZE - 1,
-						MATRIX_SIZE - 1));
+
 			}
 			System.out.println(String.format("\nGPUv3 Based Multiplication Average %d ms", (totalTime / NB_RUNS)));
 		}
@@ -137,11 +126,7 @@ public class ComputeMatrixMultiplication {
 				time = System.currentTimeMillis() - time;
 				System.out.print(".");
 				totalTime += time;
-				assert (checkValue(0, 0, MATRIX_SIZE) == mm.getMatrixRXY(0, 0));
-				assert (checkValue(0, MATRIX_SIZE - 1, MATRIX_SIZE) == mm.getMatrixRXY(0, MATRIX_SIZE - 1));
-				assert (checkValue(MATRIX_SIZE - 1, 0, MATRIX_SIZE) == mm.getMatrixRXY(MATRIX_SIZE - 1, 0));
-				assert (checkValue(MATRIX_SIZE - 1, MATRIX_SIZE - 1, MATRIX_SIZE) == mm.getMatrixRXY(MATRIX_SIZE - 1,
-						MATRIX_SIZE - 1));
+
 			}
 			System.out.println(String.format("\nJava Based Multiplication Average %d ms", (totalTime / NB_RUNS)));
 		}
@@ -149,21 +134,17 @@ public class ComputeMatrixMultiplication {
 		
 		if (mode.equals("GPU") || mode.equals("BOTH")) {
 			totalTime = 0l;
-			mm = new MatrixMultiplicationDoublePrecisionGPU(matrixA, MATRIX_SIZE, MATRIX_SIZE, false, matrixB, MATRIX_SIZE, MATRIX_SIZE,
-					false);
-			for (int i = 0; i < NB_RUNS; i++) {
-				Long time = System.currentTimeMillis();
-				mm.execute();
-				time = System.currentTimeMillis() - time;
-				System.out.print(".");
-				totalTime += time;
-				assert (checkValue(0, 0, MATRIX_SIZE) == mm.getMatrixRXY(0, 0));
-				assert (checkValue(0, MATRIX_SIZE - 1, MATRIX_SIZE) == mm.getMatrixRXY(0, MATRIX_SIZE - 1));
-				assert (checkValue(MATRIX_SIZE - 1, 0, MATRIX_SIZE) == mm.getMatrixRXY(MATRIX_SIZE - 1, 0));
-				assert (checkValue(MATRIX_SIZE - 1, MATRIX_SIZE - 1, MATRIX_SIZE) == mm.getMatrixRXY(MATRIX_SIZE - 1,
-						MATRIX_SIZE - 1));
-			}
-			System.out.println(String.format("\nGPUv1 Based Multiplication Average %d ms", (totalTime / NB_RUNS)));
+//			mm = new MatrixMultiplicationDoublePrecisionGPU(matrixA, MATRIX_SIZE, MATRIX_SIZE, false, matrixB, MATRIX_SIZE, MATRIX_SIZE,
+//					false);
+//			for (int i = 0; i < NB_RUNS; i++) {
+//				Long time = System.currentTimeMillis();
+//				mm.execute();
+//				time = System.currentTimeMillis() - time;
+//				System.out.print(".");
+//				totalTime += time;
+//
+//			}
+//			System.out.println(String.format("\nGPUv1 Based Multiplication Average %d ms", (totalTime / NB_RUNS)));
 
 			
 			totalTime = 0l;
@@ -175,11 +156,11 @@ public class ComputeMatrixMultiplication {
 				time = System.currentTimeMillis() - time;
 				System.out.print(".");
 				totalTime += time;
-				assert (checkValue(0, 0, MATRIX_SIZE) == mm.getMatrixRXY(0, 0));
-				assert (checkValue(0, MATRIX_SIZE - 1, MATRIX_SIZE) == mm.getMatrixRXY(0, MATRIX_SIZE - 1));
-				assert (checkValue(MATRIX_SIZE - 1, 0, MATRIX_SIZE) == mm.getMatrixRXY(MATRIX_SIZE - 1, 0));
-				assert (checkValue(MATRIX_SIZE - 1, MATRIX_SIZE - 1, MATRIX_SIZE) == mm.getMatrixRXY(MATRIX_SIZE - 1,
-						MATRIX_SIZE - 1));
+				assert (checkValue(0, 0, MATRIX_SIZE, mm.getMatrixRXY(0, 0)));
+				assert (checkValue(0, MATRIX_SIZE - 1, MATRIX_SIZE, mm.getMatrixRXY(0, MATRIX_SIZE - 1)));
+				assert (checkValue(MATRIX_SIZE - 1, 0, MATRIX_SIZE, mm.getMatrixRXY(MATRIX_SIZE - 1, 0)));
+				assert (checkValue(MATRIX_SIZE - 1, MATRIX_SIZE - 1, MATRIX_SIZE, mm.getMatrixRXY(MATRIX_SIZE - 1,
+						MATRIX_SIZE - 1)));
 			}
 			System.out.println(String.format("\nGPUv3 Based Multiplication Average %d ms", (totalTime / NB_RUNS)));
 		}
@@ -202,8 +183,8 @@ public class ComputeMatrixMultiplication {
 		}
 	}
 
-	private static double checkValue(int x, int y, int matrixWidth) {
-		return checkValue(x, y, matrixWidth, 0);
+	private static boolean checkValue(int x, int y, int matrixWidth, double actual) {
+		return Double.compare(checkValue(x, y, matrixWidth, 0), actual) == 0;
 	}
 
 	private static double checkValue(int x, int y, int matrixWidth, int delta) {

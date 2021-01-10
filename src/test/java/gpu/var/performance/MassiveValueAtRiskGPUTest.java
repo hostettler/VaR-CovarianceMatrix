@@ -7,7 +7,6 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import gpu.var.ValueAtRisk;
 import gpu.var.ValueAtRiskGPU;
-import gpu.var.functional.AbstractValueAtRiskTest;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class MassiveValueAtRiskGPUTest extends AbstractValueAtRiskTest {

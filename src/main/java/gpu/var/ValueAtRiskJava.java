@@ -54,16 +54,7 @@ public class ValueAtRiskJava extends AbstractValueAtRisk implements ValueAtRisk 
 						}
 					});
 
-			if (debug) {
-				for (int y = 0; y < this.numberOfObservations; y++) {
-					for (int x = 0; x < this.numberOfInstruments; x++) {
-						System.out.print(String.format("%+.6f     ",
-								instrumentsValueHistory[x + y * (this.numberOfInstruments)]));
-					}
-					System.out.println();
-				}
-				System.out.println();
-			}
+
 			List<Callable<Integer>> step1Tasks = new ArrayList<>();
 			for (int i = 0; i < this.numberOfInstruments; i++) {
 				final int index = i;
@@ -76,15 +67,9 @@ public class ValueAtRiskJava extends AbstractValueAtRisk implements ValueAtRisk 
 			executorService.invokeAll(step1Tasks);
 
 			if (debug) {
-				for (int y = 0; y < this.numberOfObservations - 1; y++) {
-					for (int x = 0; x < this.numberOfInstruments; x++) {
-						System.out.print(
-								String.format("%+.8f    ", instrumentsExcessReturns[y * numberOfInstruments + x]));
-					}
-					System.out.println();
-				}
-				System.out.println("********************************");
+				debugExcessReturns();
 			}
+
 			List<Callable<Integer>> step2Tasks = new ArrayList<>();
 			for (int i = 0; i < this.numberOfInstruments; i++) {
 				final int index = i;
@@ -98,14 +83,7 @@ public class ValueAtRiskJava extends AbstractValueAtRisk implements ValueAtRisk 
 			executorService.invokeAll(step2Tasks);
 
 			if (debug) {
-				System.out.println("Covariance");
-				for (int y = 0; y < this.numberOfInstruments; y++) {
-					for (int x = 0; x < this.numberOfInstruments; x++) {
-						System.out.print(String.format("%+.8f     ",
-								varianceCovarienceMatrix[x + y * (this.numberOfInstruments)]));
-					}
-					System.out.println();
-				}
+				debugCovarianceMatrix();
 			}
 			List<Callable<Integer>> step3Tasks = new ArrayList<>();
 			for (int i = 0; i < this.numberOfInstruments; i++) {
@@ -119,12 +97,9 @@ public class ValueAtRiskJava extends AbstractValueAtRisk implements ValueAtRisk 
 			executorService.invokeAll(step3Tasks);
 
 			if (debug) {
-				for (int y = 0; y < this.numberOfInstruments; y++) {
-					System.out.println(String.format("%+.8f %+.8f %+.8f    ", instrumentsStatistics[y * 2 + 1],
-							instrumentsWeight[y], weightedCovariance[y]));
-				}
-				System.out.println("********************************");
+				debugWeightedAverageAndWeightedCovariance();
 			}
+			
 			List<Callable<Integer>> step4Tasks = new ArrayList<>();
 			for (int i = 0; i < this.numberOfInstruments; i++) {
 				final int index = i;
@@ -179,9 +154,9 @@ public class ValueAtRiskJava extends AbstractValueAtRisk implements ValueAtRisk 
 		double weightedCovarianceOfInst = 0;
 		for (int i = 0; i < this.numberOfInstruments; i++) {
 			weightedCovarianceOfInst += varianceCovarienceMatrix[instrumentId * this.numberOfInstruments + i]
-					* instrumentsWeight[i];
+					;
 		}
-		weightedCovariance[instrumentId] = weightedCovarianceOfInst;
+		weightedCovariance[instrumentId] = weightedCovarianceOfInst * instrumentsWeight[instrumentId]* instrumentsWeight[instrumentId];
 	}
 
 	private void computeStandardDeviation(int index) {
@@ -193,7 +168,7 @@ public class ValueAtRiskJava extends AbstractValueAtRisk implements ValueAtRisk 
 		int start = BLOCK_SIZE * (index / BLOCK_SIZE);
 		double portfolioDeviation = 0;
 		for (int i = start; i < start + range; i++) {
-			portfolioDeviation += (weightedCovariance[i] * instrumentsWeight[i]);
+			portfolioDeviation += (weightedCovariance[i]);
 		}
 		portfolioStandardDeviationBuffer[index / BLOCK_SIZE] = portfolioDeviation;
 	}
@@ -240,6 +215,34 @@ public class ValueAtRiskJava extends AbstractValueAtRisk implements ValueAtRisk 
 			}
 			varianceCovarienceMatrix[instrumentId + numberOfInstruments * c] = covariance / (numberOfObservations - 1);
 		}
-
+	}
+	
+	protected void debugExcessReturns() {
+		for (int y = 0; y < this.numberOfObservations - 1; y++) {
+			for (int x = 0; x < this.numberOfInstruments; x++) {
+				System.out.print(
+						String.format("%+.12f     ", instrumentsExcessReturns[x + y * (this.numberOfInstruments)]));
+			}
+			System.out.println();
+		}
+		System.out.println();
+	}
+	
+	protected void debugCovarianceMatrix() {
+		for (int y = 0; y < this.numberOfInstruments; y++) {
+			for (int x = 0; x < this.numberOfInstruments; x++) {
+				System.out.print(
+						String.format("%+.12f     ", varianceCovarienceMatrix[x + y * (this.numberOfInstruments)]));
+			}
+			System.out.println();
+		}
+	}
+	
+	protected void debugWeightedAverageAndWeightedCovariance() {
+		for (int x = 0; x < this.numberOfInstruments; x++) {
+			System.out.println(String.format("Weighted Covariance=%+.12f",
+					weightedCovariance[x]));
+		}
+		System.out.println();
 	}
 }

@@ -48,17 +48,17 @@ class ValueAtRiskKernel extends Kernel {
 				&& (tileSize * 2 * tileSize * 2) <= this.getTargetDevice().getMaxWorkGroupSize()) {
 			tileSize *= 2;
 		}
-		
+
 		tileSize = 4;
 		this.numTiles = numberOfObservations / tileSize;
-		
-		
+
 		avgBuffer = new double[this.numberOfInstruments * ((this.numberOfObservations / tileSize) + 1)];
 
 		avgWeightedAverage = new double[this.numberOfInstruments / tileSize + 1];
 		avgVariance = new double[this.numberOfInstruments / tileSize + 1];
 
 		results = new double[2];
+		this.debug = debug;
 	}
 
 	@Local
@@ -76,16 +76,26 @@ class ValueAtRiskKernel extends Kernel {
 		System.out.println(String.format("Starting the GPU kernel with tile size = %d", tileSize));
 		executeStep(0, "compute returns",
 				Range.create2D(numberOfInstruments, numberOfObservations, tileSize, tileSize));
-		if (debug) { debugReturns(); }
+		if (debug) {
+			debugReturns();
+		}
 		executeStep(1, "compute average", Range.create2D(numberOfInstruments, numberOfObservations / tileSize));
-		if (debug) { debugWeightedAverageReturns(); }
+		if (debug) {
+			debugWeightedAverageReturns();
+		}
 		executeStep(2, "compute excess returns", Range.create2D(numberOfInstruments, numberOfObservations - 1, 1, 1));
-		if (debug) { debugExcessReturns(); }
+		if (debug) {
+			debugExcessReturns();
+		}
 		executeStep(3, "compute covariance matrix",
 				Range.create2D(numberOfInstruments, numberOfInstruments, tileSize, tileSize));
-		if (debug) { debugCovarianceMatrix(); }
+		if (debug) {
+			debugCovarianceMatrix();
+		}
 		executeStep(4, "compute Weighted Average Returns and Weighted Covariance", Range.create(numberOfInstruments));
-		if (debug) { debugWeightedAverageAndWeightedCovariance();}
+		if (debug) {
+			debugWeightedAverageAndWeightedCovariance();
+		}
 		executeStep(5, "compute Variance and Average Return", Range.create(numberOfInstruments / tileSize));
 
 		this.get(results);
@@ -106,7 +116,7 @@ class ValueAtRiskKernel extends Kernel {
 		this.get(weightedCovariance);
 		this.get(weightedAverageReturns);
 		for (int x = 0; x < this.numberOfInstruments; x++) {
-			System.out.println(String.format("Weighted Avg Return=%+.8f Weighted Covariance=%+.8f",
+			System.out.println(String.format("Weighted Avg Return=%+.12f Weighted Covariance=%+.12f",
 					weightedAverageReturns[x], weightedCovariance[x]));
 		}
 		System.out.println();
@@ -117,7 +127,7 @@ class ValueAtRiskKernel extends Kernel {
 		for (int y = 0; y < this.numberOfInstruments; y++) {
 			for (int x = 0; x < this.numberOfInstruments; x++) {
 				System.out.print(
-						String.format("%+.8f     ", varianceCovarienceMatrix[x + y * (this.numberOfInstruments)]));
+						String.format("%+.12f     ", varianceCovarienceMatrix[x + y * (this.numberOfInstruments)]));
 			}
 			System.out.println();
 		}
@@ -128,7 +138,7 @@ class ValueAtRiskKernel extends Kernel {
 		for (int y = 0; y < this.numberOfObservations - 1; y++) {
 			for (int x = 0; x < this.numberOfInstruments; x++) {
 				System.out.print(
-						String.format("%+.8f     ", instrumentsExcessReturns[x + y * (this.numberOfInstruments)]));
+						String.format("%+.12f     ", instrumentsExcessReturns[x + y * (this.numberOfInstruments)]));
 			}
 			System.out.println();
 		}
@@ -138,7 +148,7 @@ class ValueAtRiskKernel extends Kernel {
 	protected void debugWeightedAverageReturns() {
 		this.get(weightedAverageReturns);
 		for (int x = 0; x < this.numberOfInstruments; x++) {
-			System.out.print(String.format("%+.8f     ", weightedAverageReturns[x]));
+			System.out.print(String.format("%+.12f     ", weightedAverageReturns[x]));
 		}
 		System.out.println();
 	}
@@ -148,7 +158,7 @@ class ValueAtRiskKernel extends Kernel {
 		for (int y = 0; y < this.numberOfObservations - 1; y++) {
 			for (int x = 0; x < this.numberOfInstruments; x++) {
 				System.out.print(
-						String.format("%+.8f     ", instrumentsExcessReturns[x + y * (this.numberOfInstruments)]));
+						String.format("%+.12f     ", instrumentsExcessReturns[x + y * (this.numberOfInstruments)]));
 			}
 			System.out.println();
 		}
@@ -180,12 +190,11 @@ class ValueAtRiskKernel extends Kernel {
 
 		double weightedCovarianceValue = 0;
 		for (int x = 0; x < numberOfInstruments; x++) {
-			weightedCovarianceValue += instrumentsWeight[y] * instrumentsWeight[y]
-					* this.varianceCovarienceMatrix[x + y * numberOfInstruments];
+			weightedCovarianceValue +=  this.varianceCovarienceMatrix[x + y * numberOfInstruments];
 		}
 
 		weightedAverageReturns[y] = this.weightedAverageReturns[y] * instrumentsWeight[y];
-		this.weightedCovariance[y] = weightedCovarianceValue;
+		this.weightedCovariance[y] = weightedCovarianceValue * instrumentsWeight[y] * instrumentsWeight[y];
 		localBarrier();
 	}
 
@@ -212,40 +221,18 @@ class ValueAtRiskKernel extends Kernel {
 			subA[subMatrixPos] = instrumentsExcessReturns[(columnOffsetFromTile * numberOfInstruments) + globalRow];
 			subB[subMatrixPos] = instrumentsExcessReturns[globalCol + (rowOffsetFromTile * numberOfInstruments)];
 
-//			localBarrier();
-//			if (globalCol == 0 && globalRow == 0) {
-//				System.out.println("Tile");
-//				for (int j = 0; j < 4; j++) {
-//					for (int i = 0; i < 4; i++) {
-//						System.out.print(String.format(" %+.8f ", subA[j * 4 + i]));
-//					}
-//					System.out.println();
-//				}
-//				
-//				System.out.println("Tile");
-//				for (int j = 0; j < 4; j++) {
-//					for (int i = 0; i < 4; i++) {
-//						System.out.print(String.format(" %+.8f ", subB[j * 4 + i]));
-//					}
-//					System.out.println();
-//				}
-//			}
 			localBarrier();
 			// Iterate for every column of matrix B
 			for (int tileNr = 0; tileNr < tileSize; tileNr++) {
 				double a = subA[row * tileSize + tileNr];
 				double b = subB[tileNr * tileSize + col];
 				value += a * b;
-
-//				if (globalCol == 0  && globalRow == 0) {
-//					System.out.print(String.format(" %.8f * %.8f   ", a, b));
-//				}
-
 			}
 			localBarrier();
 		}
 
-		this.varianceCovarienceMatrix[globalRow * this.numberOfInstruments + globalCol] = value/ (numberOfObservations - 1);
+		this.varianceCovarienceMatrix[globalRow * this.numberOfInstruments + globalCol] = value
+				/ (numberOfObservations - 1);
 	}
 
 	protected void computeExcessReturn() {
@@ -258,7 +245,7 @@ class ValueAtRiskKernel extends Kernel {
 		}
 
 		this.instrumentsExcessReturns[globalCol + globalRow * numberOfInstruments] -= weightedAverageReturns[globalCol];
-//		localBarrier();
+		localBarrier();
 	}
 
 	protected void computeAvgReturn() {
@@ -273,19 +260,8 @@ class ValueAtRiskKernel extends Kernel {
 		for (int i = 0; i < tileSize && (returns * tileSize + i) < (this.numberOfObservations - 1); i++) {
 			double val = this.instrumentsExcessReturns[instrumentId + (returns * tileSize + i) * numberOfInstruments];
 			returnsValue += val;
-
-//			if (instrumentId == 3) {
-//				System.out.println(
-//						String.format("returns=%d group=%d i=%d val+=%.8f row=%d offset=%d returns=%d tileSize=%d",
-//								getGlobalId(1), getGroupId(0), i, val, (returns * (tileSize + i)),
-//								(returns * (tileSize + i)) * numberOfInstruments, returns, tileSize));
-//			}
 		}
 		int o = instrumentId + (returns) * this.numberOfInstruments;
-
-//		if (instrumentId == 3) {
-//			System.out.println(String.format("returnsValue=%.8f offset=%d ", returnsValue, o));
-//		}
 
 		avgBuffer[o] += returnsValue;
 		localBarrier();
@@ -293,15 +269,11 @@ class ValueAtRiskKernel extends Kernel {
 		if (returns == getGlobalSize(1) - 1) {
 			double avg = 0;
 			for (int i = 0; i < getGlobalSize(1); i++) {
-//				if (instrumentId == 3) {
-//					System.out.println(String.format("avg+= %.8f %.8f", avg,
-//							avgBuffer[instrumentId + i * this.numberOfInstruments]));
-//				}
 				avg += avgBuffer[instrumentId + i * this.numberOfInstruments];
 			}
 			weightedAverageReturns[instrumentId] = avg / (this.numberOfObservations - 1);
 		}
-//		localBarrier();
+		localBarrier();
 	}
 
 	protected void computeWeightedAverageReturnAndVariance() {
@@ -310,14 +282,10 @@ class ValueAtRiskKernel extends Kernel {
 		double sumVariance = 0;
 		double sumAverage = 0;
 		for (int i = 0; i < tileSize; i++) {
-			sumVariance += this.weightedCovariance[i + instrumentId*tileSize];
-			sumAverage += this.weightedAverageReturns[i + instrumentId*tileSize];
-			
-//			System.out.println(String.format("%d %d sumVariance=%+.8f sumAverage=%+.8f", instrumentId, i, this.weightedCovariance[i + instrumentId], this.weightedAverageReturns[i + instrumentId]));
+			sumVariance += this.weightedCovariance[i + instrumentId * tileSize];
+			sumAverage += this.weightedAverageReturns[i + instrumentId * tileSize];
+
 		}
-		
-		
-//		System.out.println(String.format("---%d sumVariance=%+.8f sumAverage=%+.8f", instrumentId, sumVariance, sumAverage));
 
 		avgVariance[instrumentId] += sumVariance;
 		avgWeightedAverage[instrumentId] += sumAverage;
@@ -330,13 +298,12 @@ class ValueAtRiskKernel extends Kernel {
 			for (int i = 0; i < getGlobalSize(0); i++) {
 				sumAverage += avgWeightedAverage[i];
 				sumVariance += avgVariance[i];
-				
-//				System.out.println(String.format("sumVariance=%+.8f sumAverage=%+.8f", sumVariance, sumAverage));
+
 			}
 			results[0] = sumAverage;
 			results[1] = sumVariance;
 		}
-//		localBarrier();
+		localBarrier();
 	}
 
 	protected void computeReturnMatrix() {
@@ -351,10 +318,10 @@ class ValueAtRiskKernel extends Kernel {
 			return;
 		}
 
-		double excessReturn = this.innerInstrumentsValueHistory[globalCol + (globalRow) * numberOfInstruments]
-				/ this.innerInstrumentsValueHistory[globalCol + (globalRow - 1) * numberOfInstruments] - 1;
+		double excessReturn = (this.innerInstrumentsValueHistory[globalCol + (globalRow) * numberOfInstruments])
+				/ (this.innerInstrumentsValueHistory[globalCol + (globalRow - 1) * numberOfInstruments]) - 1;
 		this.instrumentsExcessReturns[globalCol + (globalRow - 1) * numberOfInstruments] = excessReturn;
-//		localBarrier();
+		localBarrier();
 	}
 
 	public double getPortfolioStandardDeviation() {

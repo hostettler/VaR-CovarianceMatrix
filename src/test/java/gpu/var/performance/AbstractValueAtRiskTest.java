@@ -1,4 +1,4 @@
-package gpu.var.functional;
+package gpu.var.performance;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
